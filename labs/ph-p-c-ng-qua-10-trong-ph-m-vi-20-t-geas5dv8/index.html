@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phép cộng qua 10 trong phạm vi 20: Tách số tròn chục</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background-color: #020617;
+      color: #f8fafc;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    input[type="range"] {
+      accent-color: #38bdf8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-sky-500/30">
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <div>
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-sky-400">
+          <span>Toán Tiểu Học • Lớp 1 - 2 (GDPT 2018)</span>
+        </div>
+        <h1 class="mt-1 text-xl font-bold text-white sm:text-2xl">
+          Phép cộng qua 10 trong phạm vi 20: Tách số tròn chục
+        </h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300">
+          Mục tiêu: Gộp đủ 10 rồi cộng phần lẻ
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+    <!-- Top Workspace: Canvas + Controls -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Left: Interactive 2D Canvas (8 cols) -->
+      <section class="lg:col-span-8 flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-white">Mô hình Giỏ Tròn Chục (10 quả)</h2>
+            <p class="text-xs text-slate-400">
+              Các em hãy bấm vào quả táo xanh bên ngoài hoặc bấm nút <strong>"Gộp thành 10"</strong> để chuyển táo vào giỏ cho đủ 10 quả nhé!
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnStep" class="rounded-lg bg-sky-500 px-3.5 py-2 text-xs font-bold text-slate-950 transition hover:bg-sky-400 active:scale-95">
+              ✨ Gộp thành 10
+            </button>
+            <button id="btnReset" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700">
+              ↺ Làm lại
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+          <canvas id="labCanvas" width="820" height="390" class="block h-auto w-full cursor-pointer"></canvas>
+        </div>
+
+        <!-- Step-by-step Formula & Number Bond Banner -->
+        <div id="hintBox" class="mt-4 rounded-xl border border-slate-800 bg-slate-950/80 p-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wider text-amber-400">Sơ đồ tách số &amp; Cách tính</div>
+              <div id="formulaDisplay" class="mt-1 text-lg font-bold text-white tabular-nums sm:text-xl">
+                9 + 5 = 9 + 1 + 4 = 10 + 4 = 14
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-sm">
+              <span class="text-slate-400">Tách <strong id="bondTotal" class="text-emerald-400 tabular-nums">5</strong> thành:</span>
+              <span class="rounded bg-sky-500/20 px-2.5 py-0.5 font-bold text-sky-300 tabular-nums" id="bondPart1">1</span>
+              <span class="text-slate-500">và</span>
+              <span class="rounded bg-amber-500/20 px-2.5 py-0.5 font-bold text-amber-300 tabular-nums" id="bondPart2">4</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Controls & Presets (4 cols) -->
+      <aside class="lg:col-span-4 flex flex-col gap-5 rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-xl">
+        <div>
+          <h2 class="text-base font-bold text-white">Bảng Điều Khiển Phép Tính</h2>
+          <p class="mt-0.5 text-xs text-slate-400">Kéo thanh trượt để chọn 2 số hạng có tổng qua 10.</p>
+        </div>
+
+        <!-- Slider A -->
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+          <div class="flex items-center justify-between text-sm">
+            <label for="sliderA" class="font-semibold text-rose-400">Số hạng thứ nhất (Táo đỏ)</label>
+            <span id="valA" class="rounded bg-rose-500/20 px-2.5 py-0.5 font-bold text-rose-300 tabular-nums">9</span>
+          </div>
+          <input id="sliderA" type="range" min="5" max="9" value="9" class="w-full cursor-pointer" />
+          <div class="flex justify-between text-[11px] text-slate-500 tabular-nums">
+            <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span>
+          </div>
+        </div>
+
+        <!-- Slider B -->
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+          <div class="flex items-center justify-between text-sm">
+            <label for="sliderB" class="font-semibold text-emerald-400">Số hạng thứ hai (Táo xanh)</label>
+            <span id="valB" class="rounded bg-emerald-500/20 px-2.5 py-0.5 font-bold text-emerald-300 tabular-nums">5</span>
+          </div>
+          <input id="sliderB" type="range" min="2" max="9" value="5" class="w-full cursor-pointer" />
+          <div class="flex justify-between text-[11px] text-slate-500 tabular-nums">
+            <span>2</span><span>4</span><span>6</span><span>8</span><span>9</span>
+          </div>
+        </div>
+
+        <!-- Toggle Hint -->
+        <label class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+          <span class="text-sm font-medium text-slate-200">Hiện gợi ý sơ đồ tách số</span>
+          <input id="toggleHint" type="checkbox" checked class="h-4 w-4 accent-sky-500" />
+        </label>
+
+        <!-- Presets -->
+        <div>
+          <div class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Ví dụ mẫu</div>
+          <div class="grid grid-cols-3 gap-2">
+            <button data-a="9" data-b="5" class="preset-btn rounded-lg border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 transition hover:border-sky-500 hover:text-sky-300 tabular-nums">9 + 5</button>
+            <button data-a="8" data-b="6" class="preset-btn rounded-lg border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 transition hover:border-sky-500 hover:text-sky-300 tabular-nums">8 + 6</button>
+            <button data-a="7" data-b="4" class="preset-btn rounded-lg border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 transition hover:border-sky-500 hover:text-sky-300 tabular-nums">7 + 4</button>
+            <button data-a="6" data-b="5" class="preset-btn rounded-lg border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 transition hover:border-sky-500 hover:text-sky-300 tabular-nums">6 + 5</button>
+            <button data-a="9" data-b="8" class="preset-btn rounded-lg border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 transition hover:border-sky-500 hover:text-sky-300 tabular-nums">9 + 8</button>
+            <button data-a="8" data-b="5" class="preset-btn rounded-lg border border-slate-700 bg-slate-800 py-2 text-xs font-bold text-slate-200 transition hover:border-sky-500 hover:text-sky-300 tabular-nums">8 + 5</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Bottom Grid: Practice Game + Observation Sheet + Mini Quiz -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Interactive Fill-in-the-Blank Game (6 cols) -->
+      <section class="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white">🎮 Trò Chơi Điền Số Còn Thiếu</h2>
+            <p class="text-xs text-slate-400">Em hãy tách số để gộp đủ 10 rồi điền kết quả nhé!</p>
+          </div>
+          <button id="btnNewChallenge" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-slate-700">
+            Đổi bài mới
+          </button>
+        </div>
+
+        <div class="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4">
+          <div class="text-center text-lg font-bold text-white tabular-nums">
+            Phép tính: <span id="chA" class="text-rose-400">8</span> + <span id="chB" class="text-emerald-400">5</span> = ?
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm font-semibold">
+            <span>Tách <span id="chB2" class="text-emerald-400 tabular-nums">5</span> thành</span>
+            <input id="inPart1" type="number" min="1" max="9" placeholder="?" class="w-14 rounded-lg border border-slate-700 bg-slate-900 py-1.5 text-center font-bold text-sky-300 focus:border-sky-500 focus:outline-none tabular-nums" />
+            <span>và</span>
+            <input id="inPart2" type="number" min="1" max="9" placeholder="?" class="w-14 rounded-lg border border-slate-700 bg-slate-900 py-1.5 text-center font-bold text-amber-300 focus:border-sky-500 focus:outline-none tabular-nums" />
+            <span>→ 10 + <span id="chPart2Echo" class="text-amber-300">?</span> =</span>
+            <input id="inSum" type="number" min="11" max="19" placeholder="?" class="w-16 rounded-lg border border-slate-700 bg-slate-900 py-1.5 text-center font-bold text-white focus:border-sky-500 focus:outline-none tabular-nums" />
+          </div>
+
+          <div class="mt-4 flex items-center justify-center gap-3">
+            <button id="btnCheckChallenge" class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-emerald-400">
+              Kiểm tra đáp án
+            </button>
+          </div>
+          <p id="challengeFeedback" class="mt-3 text-center text-xs font-medium"></p>
+        </div>
+      </section>
+
+      <!-- Observation Sheet (6 cols) -->
+      <section class="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-white">📋 Phiếu Quan Sát Thực Hành</h2>
+            <p class="text-xs text-slate-400">Ghi lại các phép tính em vừa thực hành trên giỏ táo.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="btnLogData" class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-sky-400">
+              + Ghi Số Liệu
+            </button>
+            <button id="btnExportCsv" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700">
+              Xuất CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-3 max-h-48 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950">
+          <table class="w-full text-left text-xs">
+            <thead class="sticky top-0 bg-slate-900 text-slate-400">
+              <tr>
+                <th class="px-3 py-2">Phép tính</th>
+                <th class="px-3 py-2">Tách số thứ 2</th>
+                <th class="px-3 py-2">Gộp 10 + lẻ</th>
+                <th class="px-3 py-2">Kết quả</th>
+              </tr>
+            </thead>
+            <tbody id="obsTableBody" class="divide-y divide-slate-800/70 tabular-nums text-slate-200">
+              <tr>
+                <td colspan="4" class="px-3 py-4 text-center text-slate-500">Chưa có dữ liệu. Hãy bấm "+ Ghi Số Liệu"!</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Mini Quiz: Câu Hỏi Khám Phá -->
+    <section class="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-xl">
+      <h2 class="text-base font-bold text-white">💡 Câu Hỏi Khám Phá (Mini-Quiz)</h2>
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <!-- Q1 -->
+        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+          <p class="text-sm font-semibold text-slate-100">
+            Câu 1: Để tính <span class="text-sky-400 tabular-nums">9 + 6</span> bằng cách gộp cho tròn chục, em cần tách số <span class="text-emerald-400">6</span> thành mấy và mấy?
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button onclick="checkQuiz(1, 'a', this)" class="quiz-btn-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium hover:border-sky-500">A. 2 và 4</button>
+            <button onclick="checkQuiz(1, 'b', this)" class="quiz-btn-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium hover:border-sky-500">B. 1 và 5</button>
+            <button onclick="checkQuiz(1, 'c', this)" class="quiz-btn-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium hover:border-sky-500">C. 3 và 3</button>
+          </div>
+          <p id="quizFeedback1" class="mt-2 text-xs"></p>
+        </div>
+
+        <!-- Q2 -->
+        <div class="rounded-xl border border-slate-800 bg-slate-950 p-4">
+          <p class="text-sm font-semibold text-slate-100">
+            Câu 2: Trong phép tính <span class="text-sky-400 tabular-nums">8 + 7</span>, sau khi gộp đủ 10 thì còn lại mấy quả lẻ ở ngoài?
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button onclick="checkQuiz(2, 'a', this)" class="quiz-btn-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium hover:border-sky-500">A. 5 quả</button>
+            <button onclick="checkQuiz(2, 'b', this)" class="quiz-btn-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium hover:border-sky-500">B. 2 quả</button>
+            <button onclick="checkQuiz(2, 'c', this)" class="quiz-btn-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium hover:border-sky-500">C. 4 quả</button>
+          </div>
+          <p id="quizFeedback2" class="mt-2 text-xs"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- State ---
+    let a = 9;
+    let b = 5;
+    let movedCount = 0; // how many green apples moved into the 10-basket
+    let showHint = true;
+    const observations = [];
+
+    // Animation state for smooth apple movement
+    let animProgress = 0;
+    let isAnimating = false;
+
+    const canvas = document.getElementById('labCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sliderA = document.getElementById('sliderA');
+    const sliderB = document.getElementById('sliderB');
+    const valA = document.getElementById('valA');
+    const valB = document.getElementById('valB');
+    const toggleHint = document.getElementById('toggleHint');
+    const hintBox = document.getElementById('hintBox');
+
+    // --- Helper: Enforce a + b > 10 ---
+    function syncSliders(changed) {
+      a = parseInt(sliderA.value, 10);
+      b = parseInt(sliderB.value, 10);
+      if (a + b <= 10) {
+        if (changed === 'a') {
+          b = 11 - a;
+          sliderB.value = b;
+        } else {
+          a = 11 - b;
+          sliderA.value = a;
+        }
+      }
+      valA.textContent = a;
+      valB.textContent = b;
+      movedCount = 0;
+      isAnimating = false;
+      updateFormulaUI();
+      draw();
+    }
+
+    function updateFormulaUI() {
+      const need = 10 - a;
+      const rem = b - need;
+      const sum = a + b;
+      document.getElementById('bondTotal').textContent = b;
+      document.getElementById('bondPart1').textContent = need;
+      document.getElementById('bondPart2').textContent = rem;
+
+      const formulaEl = document.getElementById('formulaDisplay');
+      if (movedCount >= need) {
+        formulaEl.innerHTML = `<span class="text-rose-400">${a}</span> + <span class="text-emerald-400">${b}</span> = <span class="text-rose-400">${a}</span> + <span class="text-sky-400">${need}</span> + <span class="text-amber-400">${rem}</span> = <span class="text-sky-300">10</span> + <span class="text-amber-400">${rem}</span> = <span class="text-white underline decoration-sky-500">${sum}</span>`;
+      } else {
+        formulaEl.innerHTML = `<span class="text-rose-400">${a}</span> + <span class="text-emerald-400">${b}</span> = ? <span class="text-xs font-normal text-slate-400">(Cần thêm ${need - movedCount} quả nữa để đủ 10)</span>`;
+      }
+    }
+
+    // --- Drawing Helpers ---
+    function drawApple(x, y, radius, color, highlight = false) {
+      ctx.save();
+      // Shadow
+      ctx.beginPath();
+      ctx.arc(x + 2, y + 3, radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fill();
+
+      // Body
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      if (highlight) {
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#fde047';
+        ctx.stroke();
+      }
+
+      // Gloss
+      ctx.beginPath();
+      ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.25, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fill();
+
+      // Stem & Leaf
+      ctx.beginPath();
+      ctx.moveTo(x, y - radius + 2);
+      ctx.lineTo(x + 2, y - radius - 7);
+      ctx.strokeStyle = '#a16207';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.ellipse(x + 6, y - radius - 4, 6, 3, -0.4, 0, Math.PI * 2);
+      ctx.fillStyle = '#4ade80';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Store clickable outside apples
+    let outsideAppleCoords = [];
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const need = 10 - a;
+      const isFullTen = movedCount >= need;
+
+      // 1. Draw 10-Basket (Left)
+      const basketX = 40;
+      const basketY = 65;
+      const basketW = 380;
+      const basketH = 240;
+
+      ctx.save();
+      ctx.fillStyle = isFullTen ? 'rgba(14, 165, 233, 0.12)' : 'rgba(30, 41, 59, 0.7)';
+      ctx.strokeStyle = isFullTen ? '#38bdf8' : '#334155';
+      ctx.lineWidth = isFullTen ? 3 : 2;
+      ctx.beginPath();
+      ctx.roundRect(basketX, basketY, basketW, basketH, 16);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // Basket Label
+      ctx.fillStyle = isFullTen ? '#38bdf8' : '#94a3b8';
+      ctx.font = 'bold 15px "Be Vietnam Pro", sans-serif';
+      ctx.fillText(
+        isFullTen ? '✓ GIỎ TRÒN CHỤC: ĐỦ 10 QUẢ!' : `GIỎ TRÒN CHỤC (Đang có ${a + movedCount}/10 quả)`,
+        basketX + 16,
+        basketY - 14
+      );
+
+      // Draw 10 slots (2 rows x 5 cols)
+      const slotStartX = basketX + 46;
+      const slotStartY = basketY + 65;
+      const gapX = 72;
+      const gapY = 105;
+
+      for (let i = 0; i < 10; i++) {
+        const col = i % 5;
+        const row = Math.floor(i / 5);
+        const cx = slotStartX + col * gapX;
+        const cy = slotStartY + row * gapY;
+
+        // Empty slot circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+        ctx.strokeStyle = '#475569';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (i < a) {
+          drawApple(cx, cy, 21, '#f43f5e'); // Red apple
+        } else if (i < a + movedCount) {
+          drawApple(cx, cy, 21, '#10b981', true); // Moved green apple
+        }
+      }
+
+      // 2. Draw Outside Area (Right)
+      const outX = 460;
+      const outY = 65;
+      const outW = 320;
+      const outH = 240;
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(outX, outY, outW, outH, 16);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      const remainingOutside = b - movedCount;
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 15px "Be Vietnam Pro", sans-serif';
+      ctx.fillText(`TÁO XANH BÊN NGOÀI (${remainingOutside} quả)`, outX + 16, outY - 14);
+
+      outsideAppleCoords = [];
+      for (let j = 0; j < remainingOutside; j++) {
+        const col = j % 4;
+        const row = Math.floor(j / 4);
+        const cx = outX + 52 + col * 70;
+        const cy = outY + 65 + row * 95;
+        drawApple(cx, cy, 21, '#10b981');
+        outsideAppleCoords.push({ x: cx, y: cy, r: 24 });
+      }
+
+      // 3. Bottom Summary Bar on Canvas
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '600 14px "Be Vietnam Pro", sans-serif';
+      if (!isFullTen) {
+        ctx.fillText(
+          `Gợi ý: Bấm vào táo xanh bên phải để chuyển ${need - movedCount} quả vào giỏ cho đủ 10.`,
+          40,
+          350
+        );
+      } else {
+        ctx.fillStyle = '#fde047';
+        ctx.fillText(
+          `Tuyệt vời! 10 quả trong giỏ + ${remainingOutside} quả bên ngoài = ${10 + remainingOutside} quả.`,
+          40,
+          350
+        );
+      }
+    }
+
+    // --- Canvas Click Interaction ---
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+
+      const need = 10 - a;
+      if (movedCount >= need) return;
+
+      for (const apple of outsideAppleCoords) {
+        const dist = Math.hypot(mx - apple.x, my - apple.y);
+        if (dist <= apple.r + 4) {
+          movedCount++;
+          updateFormulaUI();
+          draw();
+          break;
+        }
+      }
+    });
+
+    // --- Buttons & Sliders ---
+    sliderA.addEventListener('input', () => syncSliders('a'));
+    sliderB.addEventListener('input', () => syncSliders('b'));
+
+    toggleHint.addEventListener('change', () => {
+      showHint = toggleHint.checked;
+      hintBox.style.display = showHint ? 'block' : 'none';
+    });
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      const need = 10 - a;
+      if (movedCount < need) {
+        movedCount = need;
+        updateFormulaUI();
+        draw();
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      movedCount = 0;
+      updateFormulaUI();
+      draw();
+    });
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        sliderA.value = btn.dataset.a;
+        sliderB.value = btn.dataset.b;
+        syncSliders('a');
+      });
+    });
+
+    // --- Challenge Game ---
+    let chA = 8, chB = 5;
+    function newChallenge() {
+      chA = Math.floor(Math.random() * 4) + 6; // 6..9
+      const minB = 11 - chA;
+      chB = Math.floor(Math.random() * (9 - minB + 1)) + minB;
+      document.getElementById('chA').textContent = chA;
+      document.getElementById('chB').textContent = chB;
+      document.getElementById('chB2').textContent = chB;
+      document.getElementById('inPart1').value = '';
+      document.getElementById('inPart2').value = '';
+      document.getElementById('inSum').value = '';
+      document.getElementById('chPart2Echo').textContent = '?';
+      document.getElementById('challengeFeedback').textContent = '';
+    }
+
+    document.getElementById('inPart2').addEventListener('input', (e) => {
+      document.getElementById('chPart2Echo').textContent = e.target.value || '?';
+    });
+
+    document.getElementById('btnNewChallenge').addEventListener('click', newChallenge);
+
+    document.getElementById('btnCheckChallenge').addEventListener('click', () => {
+      const p1 = parseInt(document.getElementById('inPart1').value, 10);
+      const p2 = parseInt(document.getElementById('inPart2').value, 10);
+      const sum = parseInt(document.getElementById('inSum').value, 10);
+      const need = 10 - chA;
+      const rem = chB - need;
+      const fb = document.getElementById('challengeFeedback');
+
+      if (p1 === need && p2 === rem && sum === chA + chB) {
+        fb.textContent = `🎉 Chính xác! ${chA} + ${chB} = ${chA} + ${need} + ${rem} = 10 + ${rem} = ${chA + chB}.`;
+        fb.className = 'mt-3 text-center text-xs font-bold text-emerald-400';
+      } else {
+        fb.textContent = `💡 Chưa đúng rồi! Gợi ý: ${chA} cần thêm ${need} để đủ 10. Em hãy thử lại nhé!`;
+        fb.className = 'mt-3 text-center text-xs font-semibold text-amber-400';
+      }
+    });
+
+    // --- Observation Sheet ---
+    document.getElementById('btnLogData').addEventListener('click', () => {
+      const need = 10 - a;
+      const rem = b - need;
+      const sum = a + b;
+      observations.push({
+        expr: `${a} + ${b}`,
+        split: `${b} = ${need} + ${rem}`,
+        tenPlus: `10 + ${rem}`,
+        result: sum
+      });
+      renderObservations();
+    });
+
+    function renderObservations() {
+      const tbody = document.getElementById('obsTableBody');
+      if (observations.length === 0) return;
+      tbody.innerHTML = observations
+        .map(
+          (row) => `
+        <tr class="hover:bg-slate-900/60">
+          <td class="px-3 py-2 font-bold text-white">${row.expr}</td>
+          <td class="px-3 py-2 text-sky-300">${row.split}</td>
+          <td class="px-3 py-2 text-amber-300">${row.tenPlus}</td>
+          <td class="px-3 py-2 font-bold text-emerald-400">${row.result}</td>
+        </tr>`
+        )
+        .join('');
+    }
+
+    document.getElementById('btnExportCsv').addEventListener('click', () => {
+      if (observations.length === 0) return;
+      const header = 'Phep tinh,Tach so thu 2,Gop 10 + le,Ket qua\n';
+      const rows = observations.map((r) => `${r.expr},${r.split},${r.tenPlus},${r.result}`).join('\n');
+      const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'phieu_quan_sat_tach_so_tron_chuc.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // --- Mini Quiz ---
+    function checkQuiz(qNum, choice, btn) {
+      const fb = document.getElementById(`quizFeedback${qNum}`);
+      document.querySelectorAll(`.quiz-btn-${qNum}`).forEach((b) => {
+        b.classList.remove('border-emerald-500', 'bg-emerald-500/20', 'border-rose-500', 'bg-rose-500/20');
+      });
+
+      if (qNum === 1) {
+        if (choice === 'b') {
+          btn.classList.add('border-emerald-500', 'bg-emerald-500/20');
+          fb.textContent = '✓ Chính xác! 9 cần thêm 1 để đủ 10, nên tách 6 thành 1 và 5 (10 + 5 = 15).';
+          fb.className = 'mt-2 text-xs font-semibold text-emerald-400';
+        } else {
+          btn.classList.add('border-rose-500', 'bg-rose-500/20');
+          fb.textContent = '✗ Chưa đúng! Em hãy nhớ 9 + 1 = 10 nhé.';
+          fb.className = 'mt-2 text-xs font-semibold text-rose-400';
+        }
+      } else if (qNum === 2) {
+        if (choice === 'a') {
+          btn.classList.add('border-emerald-500', 'bg-emerald-500/20');
+          fb.textContent = '✓ Chính xác! 8 + 2 = 10, tách 7 thành 2 và 5, vậy còn lại 5 quả lẻ ở ngoài.';
+          fb.className = 'mt-2 text-xs font-semibold text-emerald-400';
+        } else {
+          btn.classList.add('border-rose-500', 'bg-rose-500/20');
+          fb.textContent = '✗ Chưa đúng! 8 cần thêm 2 để đủ 10, vậy 7 tách 2 còn mấy nhỉ?';
+          fb.className = 'mt-2 text-xs font-semibold text-rose-400';
+        }
+      }
+    }
+
+    // Init
+    updateFormulaUI();
+    draw();
+  </script>
+</body>
+</html>
