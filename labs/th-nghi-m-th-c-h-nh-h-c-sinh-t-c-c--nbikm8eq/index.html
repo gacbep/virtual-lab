@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thí Nghiệm Thực Hành: Học sinh đặt các quả cân 100g, 200g</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "matter-js": "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/+esm"
+      }
+    }
+  </script>
+  <style>
+    body { margin: 0; background: #020617; color: #f1f5f9; font-family: system-ui, sans-serif; }
+  </style>
+</head>
+<body class="p-4 md:p-6">
+  <div class="max-w-5xl mx-auto space-y-5">
+    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="text-xs font-semibold text-amber-400">Tiểu học (Lớp 1 - 5) · Matter.js 2D (CDN)</div>
+        <h1 class="text-xl md:text-2xl font-extrabold text-white mt-1">Thí Nghiệm Thực Hành: Học sinh đặt các quả cân 100g, 200g</h1>
+        <p class="text-xs md:text-sm text-slate-400 mt-1">Học sinh đặt các quả cân 100g, 200g, 500g lên hai đĩa cân để thực hành phép cộng và tìm trạng thái cân bằng.</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-spawn-left" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl cursor-pointer">
+          + Thả Quả Cân Trái
+        </button>
+        <button id="btn-spawn-right" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl cursor-pointer">
+          + Thả Quả Cân Phải
+        </button>
+        <button id="btn-reset" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 cursor-pointer">
+          Đặt Lại
+        </button>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-3">
+        <div id="matter-stage" class="w-full h-[380px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800"></div>
+      </div>
+      <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 text-xs">
+        <h2 class="text-sm font-bold text-white">Thông Số Vật Lý 2D</h2>
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-slate-300 font-semibold">Trọng lực</span>
+            <span id="g-val" class="font-mono font-bold text-sky-400">1.0 x</span>
+          </div>
+          <input id="g-slider" type="range" min="0.2" max="2.0" step="0.1" value="1.0" class="w-full accent-sky-400 cursor-pointer">
+        </div>
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-slate-300 font-semibold">Độ nảy vật thể</span>
+            <span id="r-val" class="font-mono font-bold text-emerald-400">0.45</span>
+          </div>
+          <input id="r-slider" type="range" min="0.05" max="0.95" step="0.05" value="0.45" class="w-full accent-emerald-400 cursor-pointer">
+        </div>
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+          <span class="text-slate-400 block">Góc nghiêng đòn bẩy:</span>
+          <span id="tilt-val" class="text-lg font-mono font-bold text-amber-400">0.0°</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import Matter from 'matter-js';
+    const { Engine, Render, Runner, Bodies, Composite, Constraint, Mouse, MouseConstraint } = Matter;
+
+    const container = document.getElementById('matter-stage');
+    const engine = Engine.create();
+    const render = Render.create({
+      element: container,
+      engine,
+      options: {
+        width: container.clientWidth || 640,
+        height: 380,
+        wireframes: false,
+        background: '#020617',
+      },
+    });
+
+    const w = container.clientWidth || 640;
+    const ground = Bodies.rectangle(w / 2, 370, w, 24, { isStatic: true, render: { fillStyle: '#1e293b' } });
+    const fulcrum = Bodies.polygon(w / 2, 315, 3, 42, { isStatic: true, render: { fillStyle: '#38bdf8' } });
+    const lever = Bodies.rectangle(w / 2, 265, Math.min(440, w - 80), 18, {
+      density: 0.004,
+      render: { fillStyle: '#94a3b8' },
+    });
+    const pivot = Constraint.create({
+      pointA: { x: w / 2, y: 265 },
+      bodyB: lever,
+      length: 0,
+      stiffness: 1,
+    });
+
+    Composite.add(engine.world, [ground, fulcrum, lever, pivot]);
+
+    const mouse = Mouse.create(render.canvas);
+    Composite.add(engine.world, MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } }));
+
+    let restitution = 0.45;
+    const spawned = [];
+    function spawnBox(side) {
+      const x = side === 'left' ? w / 2 - 120 : w / 2 + 120;
+      const color = side === 'left' ? '#0ea5e9' : '#f59e0b';
+      const box = Bodies.rectangle(x, 60, 42, 42, {
+        restitution,
+        render: { fillStyle: color },
+      });
+      spawned.push(box);
+      Composite.add(engine.world, box);
+    }
+
+    document.getElementById('btn-spawn-left').onclick = () => spawnBox('left');
+    document.getElementById('btn-spawn-right').onclick = () => spawnBox('right');
+    document.getElementById('btn-reset').onclick = () => {
+      spawned.forEach((b) => Composite.remove(engine.world, b));
+      spawned.length = 0;
+      Matter.Body.setAngle(lever, 0);
+      Matter.Body.setAngularVelocity(lever, 0);
+    };
+
+    document.getElementById('g-slider').oninput = (e) => {
+      const val = Number(e.target.value);
+      engine.gravity.scale = 0.001 * val;
+      document.getElementById('g-val').textContent = val.toFixed(1) + ' x';
+    };
+    document.getElementById('r-slider').oninput = (e) => {
+      restitution = Number(e.target.value);
+      document.getElementById('r-val').textContent = restitution.toFixed(2);
+    };
+
+    Render.run(render);
+    Runner.run(Runner.create(), engine);
+
+    setInterval(() => {
+      const deg = ((lever.angle * 180) / Math.PI).toFixed(1);
+      document.getElementById('tilt-val').textContent = deg + '°';
+    }, 80);
+  </script>
+</body>
+</html>
